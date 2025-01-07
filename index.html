@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Pong: Enhanced Features</title>
+  <title>Pong: Enhanced Instructions and Ball Acceleration</title>
   <style>
     body {
       background: linear-gradient(120deg, #ff8a80, #8c9eff);
@@ -56,7 +56,6 @@
       max-width: 500px;
       text-align: center;
       color: #fff;
-      box-shadow: 0 0 15px rgba(255,255,255,0.3);
     }
     #winnerMsg {
       position: absolute;
@@ -87,7 +86,7 @@
       <p><strong>P:</strong> Pause/Unpause the Game</p>
       <p><strong>H:</strong> Show/Hide Instructions (Pauses the Game)</p>
       <p><strong>Enter or Space:</strong> Start/Resume Play</p>
-      <p>First player to reach <strong>20 points</strong> wins!</p>
+      <p>Reach 20 points to win the game!</p>
     </div>
   </div>
   
@@ -96,23 +95,22 @@
   
   <script>
     // ----------------------- SOUND SETUP -----------------------
-    const paddleHitSound = new Audio("block.wav");
-    const scoreSound     = new Audio("hit_skill02.wav");
+    const paddleHitSound = new Audio("https://www.myinstants.com/media/sounds/smw_jump.wav");
+    const scoreSound     = new Audio("https://www.myinstants.com/media/sounds/smb_mariodie.wav");
     
     // ----------------------- CANVAS SETUP -----------------------
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
     // ----------------------- GAME CONSTANTS -----------------------
-    const PADDLE_WIDTH       = 10;
-    const PADDLE_HEIGHT      = 70;
-    const PADDLE_MOVE_SPEED  = 5; // Pixels per frame for smooth movement
-    const BALL_RADIUS        = 8;
-    const BASE_SPEED_X       = 3;
-    const BASE_SPEED_Y       = 2;
-    const WINNING_SCORE      = 20;
-    const FIREWORKS_COUNT    = 30; // Number of fireworks bursts
-    const BALL_SPEED_INCREMENT = 1.05; // 5% speed increase after 10 volleys
+    const PADDLE_WIDTH      = 10;
+    const PADDLE_HEIGHT     = 70;
+    const PADDLE_MOVE_SPEED = 5; // Pixels per frame for smooth movement
+    const BALL_RADIUS       = 8;
+    const BASE_SPEED_X      = 3;
+    const BASE_SPEED_Y      = 2;
+    const WINNING_SCORE     = 20;
+    const FIREWORKS_COUNT   = 20; // Number of fireworks bursts
     
     // ----------------------- GAME STATE VARIABLES -----------------------
     let leftScore = 0;
@@ -198,9 +196,9 @@
       hideBall    = true;
       particles    = [];
     
-      for (let i = 0; i < 30; i++) { // Increase number of particles for better effect
+      for (let i = 0; i < 20; i++) {
         let angle = Math.random() * 2 * Math.PI;
-        let speed = 2 + Math.random() * 4; // Slightly higher speed
+        let speed = 2 + Math.random() * 3;
         particles.push({
           x: x,
           y: y,
@@ -225,11 +223,11 @@
     }
     
     function createFireworkBurst() {
-      // Each burst has 40 sparks for a more vibrant effect
+      // Each burst has 30 sparks
       const sparks = [];
       const x = Math.random() * canvas.width;
       const y = Math.random() * (canvas.height * 0.7); // Upper 70% of canvas
-      for (let i = 0; i < 40; i++) {
+      for (let i = 0; i < 30; i++) {
         let angle = Math.random() * 2 * Math.PI;
         let speed = 2 + Math.random() * 3;
         sparks.push({
@@ -284,14 +282,13 @@
     
     // ----------------------- MAIN GAME LOOP FUNCTIONS -----------------------
     function moveEverything() {
-      // If game is paused, stopped, scattering, or over, don't move the ball
       if (gameStopped || gamePaused || scattering || gameOver) return;
     
       // Smooth paddle movement
       leftY += paddleVelocityLeft;
       rightY += paddleVelocityRight;
     
-      // Keep paddles within canvas bounds
+      // Keep paddles within canvas
       leftY = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, leftY));
       rightY = Math.max(0, Math.min(canvas.height - PADDLE_HEIGHT, rightY));
     
@@ -299,13 +296,9 @@
       ballX += ballSpeedX;
       ballY += ballSpeedY;
     
-      // Bounce off top and bottom walls
-      if (ballY < BALL_RADIUS && ballSpeedY < 0) {
-        ballSpeedY = -ballSpeedY;
-      }
-      if (ballY > canvas.height - BALL_RADIUS && ballSpeedY > 0) {
-        ballSpeedY = -ballSpeedY;
-      }
+      // Bounce off top and bottom
+      if (ballY < 0 && ballSpeedY < 0) ballSpeedY = -ballSpeedY;
+      if (ballY > canvas.height && ballSpeedY > 0) ballSpeedY = -ballSpeedY;
     
       // Check collision with left paddle
       if (ballX < PADDLE_WIDTH + BALL_RADIUS) {
@@ -317,8 +310,8 @@
     
           // Increment ball speed after 10 volleys
           if (volleyCount >= 10) {
-            ballSpeedX *= BALL_SPEED_INCREMENT; // 5% speed increase
-            ballSpeedY *= BALL_SPEED_INCREMENT;
+            ballSpeedX *= 1.05; // 5% speed increase
+            ballSpeedY *= 1.05;
           }
         } else {
           // Right player scores
@@ -340,8 +333,8 @@
     
           // Increment ball speed after 10 volleys
           if (volleyCount >= 10) {
-            ballSpeedX *= BALL_SPEED_INCREMENT; // 5% speed increase
-            ballSpeedY *= BALL_SPEED_INCREMENT;
+            ballSpeedX *= 1.05; // 5% speed increase
+            ballSpeedY *= 1.05;
           }
         } else {
           // Left player scores
@@ -365,6 +358,8 @@
     function endGame(winner) {
       gameOver = true;
       hideBall = true;
+      winnerMsgDiv.textContent = `${winner} WINS! 🎉`;
+      winnerMsgDiv.style.display = 'block';
       startFireworks(winner);
     }
     
@@ -390,12 +385,12 @@
         drawParticles();
       }
     
-      // Draw fireworks if game is over
+      // Draw fireworks
       if (gameOver) {
         drawFireworks();
       }
     
-      // Draw center net
+      // Draw net
       ctx.setLineDash([5, 15]);
       ctx.strokeStyle = '#ffffff';
       ctx.beginPath();
@@ -410,13 +405,9 @@
       if (gameStopped) {
         msg = "Press ENTER or SPACE to begin";
       } else if (gamePaused && countdown > 0) {
-        msg = `${capitalize(nextReceiver)} receives in ${countdown}s`;
+        msg = `${nextReceiver.charAt(0).toUpperCase() + nextReceiver.slice(1)} receives in ${countdown}s`;
       }
       document.getElementById('countdownMsg').textContent = msg;
-    }
-    
-    function capitalize(word) {
-      return word.charAt(0).toUpperCase() + word.slice(1);
     }
     
     function gameLoop() {
@@ -515,12 +506,6 @@
         case 'h':
           toggleInstructions();
           break;
-        default:
-          // If game is over, any key press restarts the game
-          if (gameOver) {
-            startGame();
-          }
-          break;
       }
     });
     
@@ -537,10 +522,6 @@
           break;
       }
     });
-    
-    // ----------------------- FIREWORKS FUNCTIONS -----------------------
-    // These functions are defined earlier for clarity
-    // No need to redefine them here
   </script>
 </body>
 </html>
